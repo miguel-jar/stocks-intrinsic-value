@@ -7,7 +7,9 @@ import pandas as pd
 import requests
 
 
-def get_index_current_comp(index: Literal["IBOV", "SMLL", "IDIV"]) -> pd.DataFrame:
+def get_index_current_comp(index: Literal["IBOV", "SMLL", "IDIV"], save_csv: bool = False) -> pd.DataFrame:
+    _file_saving_path = f"files/{index.lower()}_current_composition.csv"
+    
     payload = {"index": index, "language": "pt-br"}
     encoded_payload = base64.b64encode(json.dumps(payload).encode()).decode()
     url = f"https://sistemaswebb3-listados.b3.com.br/indexProxy/indexCall/GetDownloadPortfolioDay/{encoded_payload}"
@@ -38,6 +40,9 @@ def get_index_current_comp(index: Literal["IBOV", "SMLL", "IDIV"]) -> pd.DataFra
     }
 
     response = requests.get(url, cookies=cookies, headers=headers)
+    
+    if response.status_code != 200:
+        response.raise_for_status()
 
     data = base64.b64decode(response.content)
     df = pd.read_csv(
@@ -54,16 +59,17 @@ def get_index_current_comp(index: Literal["IBOV", "SMLL", "IDIV"]) -> pd.DataFra
         engine='python'
     )
     df["stock_type"] = df["stock_type"].str.replace(" ", "")
+    
+    if save_csv:
+        df.to_csv(_file_saving_path, index=False)
+        print(f"\nFile saved in {_file_saving_path}\n")
+        
     return df
 
 
 if __name__ == "__main__":
-    _index = "IDIV"
-    _file_saving_path = f"files/{_index.lower()}_current_composition.csv"
-
+    index = "IDIV"
     try:
-        df = get_index_current_comp(_index)
-        df.to_csv(_file_saving_path, index=False)
-        print(f"\nFile saved in {_file_saving_path}\n")
+        df = get_index_current_comp(index, True)
     except Exception as e:
-        print(e)
+        print("\n" + str(e) + "\n")

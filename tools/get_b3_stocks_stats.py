@@ -2,7 +2,9 @@ import pandas as pd
 import requests
 
 
-def get_b3_stocks_stats() -> pd.DataFrame:
+def get_b3_stocks_stats(save_csv: bool = False) -> pd.DataFrame:
+    _file_saving_path = "files/statistics_all_stocks_b3.csv"
+
     cookies = {
         "_adasys": "c043ca00-07e9-4df6-bbd2-03db2d984220",
         "suno_checkout_userid": "11ce0881-7f9e-478b-bfb2-728dca75c647",
@@ -47,17 +49,20 @@ def get_b3_stocks_stats() -> pd.DataFrame:
         headers=headers,
     )
 
-    data = response.json()["list"]
-    return pd.DataFrame(data)
+    if response.status_code != 200:
+        response.raise_for_status()
 
+    df = pd.DataFrame(response.json()["list"])
 
-if __name__ == "__main__":
-    _file_saving_path = "files/statistics_all_stocks_b3.csv"
-
-    try:
-        df = get_b3_stocks_stats()
+    if save_csv:
         df.to_csv(_file_saving_path, index=False)
         print(f"\nFile saved in {_file_saving_path}\n")
 
+    return df
+
+
+if __name__ == "__main__":
+    try:
+        df = get_b3_stocks_stats(True)
     except Exception as e:
-        print(e)
+        print("\n" + str(e) + "\n")
