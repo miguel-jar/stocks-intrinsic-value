@@ -7,9 +7,9 @@ import pandas as pd
 import requests
 
 
-def get_index_current_comp(index: Literal["IBOV", "SMLL", "IDIV"], save_csv: bool = False) -> pd.DataFrame:
+def get_index_current_comp(index: Literal["IBOV", "SMLL", "IDIV", "IFIX"]) -> pd.DataFrame:
     _file_saving_path = f"files/{index.lower()}_current_composition.csv"
-    
+
     payload = {"index": index, "language": "pt-br"}
     encoded_payload = base64.b64encode(json.dumps(payload).encode()).decode()
     url = f"https://sistemaswebb3-listados.b3.com.br/indexProxy/indexCall/GetDownloadPortfolioDay/{encoded_payload}"
@@ -39,37 +39,44 @@ def get_index_current_comp(index: Literal["IBOV", "SMLL", "IDIV"], save_csv: boo
         "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
     }
 
-    response = requests.get(url, cookies=cookies, headers=headers)
-    
-    if response.status_code != 200:
+    # Always tries to get data from web to guaranty fresh data
+    # Otherwise, uses saved data
+
+    try:
+        response = requests.get(url, cookies=cookies, headers=headers, timeout=15)
         response.raise_for_status()
 
-    data = base64.b64decode(response.content)
-    df = pd.read_csv(
-        io.BytesIO(data),
-        sep=";",
-        encoding="latin-1",
-        decimal=",",
-        thousands=".",
-        skipfooter=2,
-        skiprows=2,
-        header=None,
-        names=["ticker", "company", "stock_type", "qty", "percentage"],
-        index_col=False,
-        engine='python'
-    )
-    df["stock_type"] = df["stock_type"].str.replace(" ", "")
-    
-    if save_csv:
+        data = base64.b64decode(response.content)
+        df = pd.read_csv(
+            io.BytesIO(data),
+            sep=";",
+            encoding="latin-1",
+            decimal=",",
+            thousands=".",
+            skipfooter=2,
+            skiprows=2,
+            header=None,
+            names=["ticker", "company", "stock_type", "qty", "percentage"],
+            index_col=False,
+            engine="python",
+        )
+        df["stock_type"] = df["stock_type"].str.replace(" ", "")
         df.to_csv(_file_saving_path, index=False)
-        print(f"\nFile saved in {_file_saving_path}\n")
-        
+        print(f"\nFile saved in {_file_saving_path}")
+
+    except Exception as e:
+        print(e)
+        print("\nCouldn't get data from web. Checking for stored files ...\n")
+
+        try:
+            df = pd.read_csv(_file_saving_path)
+        except FileNotFoundError:
+            print("No stored file found. Exiting program ....")
+            exit(1)
+
     return df
 
 
 if __name__ == "__main__":
-    index = "IDIV"
-    try:
-        df = get_index_current_comp(index, True)
-    except Exception as e:
-        print("\n" + str(e) + "\n")
+    index = "IFIX"
+    df = get_index_current_comp(index)

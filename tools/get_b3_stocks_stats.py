@@ -42,21 +42,31 @@ def get_b3_stocks_stats(save_csv: bool = False) -> pd.DataFrame:
         "CategoryType": "1",
     }
 
-    response = requests.get(
-        "https://statusinvest.com.br/category/advancedsearchresultpaginated",
-        params=params,
-        cookies=cookies,
-        headers=headers,
-    )
+    # Always tries to get data from web to guaranty fresh data
+    # Otherwise, uses saved data
 
-    if response.status_code != 200:
+    try:
+        response = requests.get(
+            "https://statusinvest.com.br/category/advancedsearchresultpaginated",
+            params=params,
+            cookies=cookies,
+            headers=headers,
+        )
         response.raise_for_status()
 
-    df = pd.DataFrame(response.json()["list"])
-
-    if save_csv:
+        df = pd.DataFrame(response.json()["list"])
         df.to_csv(_file_saving_path, index=False)
-        print(f"\nFile saved in {_file_saving_path}\n")
+        print(f"\nFile saved in {_file_saving_path}")
+
+    except Exception as e:
+        print(e)
+        print("\nCouldn't get data from web. Checking for stored files ...\n")
+
+        try:
+            df = pd.read_csv(_file_saving_path)
+        except FileNotFoundError:
+            print("No stored file found. Exiting program ....")
+            exit(1)
 
     return df
 
