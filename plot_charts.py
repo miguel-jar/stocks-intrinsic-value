@@ -1,0 +1,140 @@
+import numpy as np
+import pandas as pd
+import plotly.express as px
+from plotly.subplots import make_subplots
+
+
+def plot_upside_chat(valid_stocks: pd.DataFrame, index: str):
+    valid_stocks["upside"] = (valid_stocks["upside"] * 100).round(2)
+
+    fig = px.scatter(
+        valid_stocks,
+        x="ticker",
+        y="upside",
+        color="upside",
+        hover_name="ticker",
+        hover_data={"upside": True, "ticker": False, "price": True, "iv": True},
+        title="Upside [%]",
+        subtitle=f"Upside for {index} stocks comparring intrinsic value and current price ((iv / price - 1) * 100)",
+    )
+    fig.update_layout(title={"font": {"weight": 1000}})
+
+    return fig
+
+
+def plot_price_iv_chat(valid_stocks: pd.DataFrame, index: str):
+    valid_stocks["upside"] = valid_stocks["upside"] * 100
+    valid_stocks["abs_upside"] = abs(valid_stocks["upside"])
+
+    fig = px.scatter(
+        valid_stocks,
+        x="price",
+        y="iv",
+        color="upside",
+        size="abs_upside",
+        hover_name="ticker",
+        hover_data={
+            "upside": True,
+            "abs_upside": False,
+            "ticker": False,
+            "price": True,
+            "iv": True,
+            "p_iv": True,
+        },
+        labels={"iv": "intrinsic value"},
+        title="Price vs. Intrinsic Value",
+        subtitle=f"Relation between {index} stocks current price and intrinsic value",
+    )
+
+    fig.add_scatter(
+        x=[0, valid_stocks["price"].max()],
+        y=[0, valid_stocks["price"].max()],
+        mode="lines",
+        name="price = intrinsic value",
+    )
+
+    fig.update_layout(title={"font": {"weight": 1000}}, legend_orientation="h")
+
+    return fig
+
+
+def plot_upside_hist(valid_stocks: pd.DataFrame, index: str):
+    valid_stocks["upside"] = valid_stocks["upside"] * 100
+
+    hist, bin_edges = np.histogram(valid_stocks["upside"], bins=20, density=False)
+    bin_centers = 0.5 * (bin_edges[:-1] + bin_edges[1:])
+    intervals = [
+        f"{bin_edges[i]:.1f}% to {bin_edges[i + 1]:.1f}%"
+        for i in range(len(bin_edges) - 1)
+    ]
+
+    fig = make_subplots(specs=[[{"secondary_y": True}]])
+    fig.add_bar(
+        x=bin_centers,
+        y=hist,
+        secondary_y=False,
+        name="distribution",
+        customdata=intervals,  # Pass our interval strings here
+        hovertemplate="<b>Interval:</b> %{customdata}<br><b>Count:</b> %{y}<extra></extra>",
+    )
+    fig.add_scatter(
+        x=bin_centers,
+        y=hist.cumsum(),
+        mode="lines+markers",
+        name="Cumulative Sum",
+        customdata=hist.cumsum()
+        / valid_stocks["upside"].size,  # Pass our interval strings here
+        hovertemplate="<b>Count:</b> %{y}<br><b>Norm. count:</b> %{customdata}<extra></extra>",
+        secondary_y=True,
+    )
+    fig.update_layout(title={"font": {"weight": 1000}}, legend_orientation="h")
+
+    fig.update_layout(
+        title=dict(text="Upside distribution"),
+        xaxis=dict(title=dict(text="upside")),
+        yaxis=dict(title=dict(text="count")),
+    )
+
+    fig.update_yaxes(title_text="Cumulative count", secondary_y=True, showgrid=False)
+
+    return fig
+
+
+def plot_pe_upside_chat(valid_stocks: pd.DataFrame, index: str):
+    valid_stocks["upside"] = valid_stocks["upside"] * 100
+    valid_stocks["abs_upside"] = abs(valid_stocks["upside"])
+
+    fig = px.scatter(
+        valid_stocks,
+        x="p_e",
+        y="upside",
+        color="upside",
+        size="abs_upside",
+        hover_name="ticker",
+        hover_data={
+            "upside": True,
+            "p_e": True,
+            "abs_upside": False,
+            "p_iv": True,
+        },
+        labels={"p_e": "price / earnings", "upside": "upside"},
+        title="Price / Earnigns vs. Upside [%]",
+        subtitle=f"Relation between {index} stocks current p/e and upside (based on estimated intrinsic value and current price)",
+    )
+
+    fig.update_layout(title={"font": {"weight": 1000}}, legend_orientation="h")
+
+    return fig
+
+
+def plot_box_plot(valid_stocks: pd.DataFrame, index: str):
+    valid_stocks["upside"] = valid_stocks["upside"] * 100
+
+    fig = make_subplots(1, 4)
+    fig.add_box(y=valid_stocks["upside"], row=1, col=1, name="upside [%]")
+    fig.add_box(y=valid_stocks["p_e"], row=1, col=2, name="price / earnings")
+    fig.add_box(y=valid_stocks["p_bv"], row=1, col=3, name="price / book value")
+    fig.add_box(y=valid_stocks["p_iv"], row=1, col=4, name="price / intrinsic value")
+    fig.update_layout(title={"font": {"weight": 1000}}, legend_orientation="h")
+    
+    return fig
