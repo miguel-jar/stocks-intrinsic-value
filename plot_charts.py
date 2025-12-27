@@ -4,7 +4,7 @@ import plotly.express as px
 from plotly.subplots import make_subplots
 
 
-def plot_upside_chat(valid_stocks: pd.DataFrame, index: str):
+def plot_upside_chat(valid_stocks: pd.DataFrame):
     valid_stocks["upside"] = (valid_stocks["upside"] * 100).round(2)
 
     fig = px.scatter(
@@ -15,14 +15,14 @@ def plot_upside_chat(valid_stocks: pd.DataFrame, index: str):
         hover_name="ticker",
         hover_data={"upside": True, "ticker": False, "price": True, "iv": True},
         title="Upside [%]",
-        subtitle=f"Upside for {index} stocks comparring intrinsic value and current price ((iv / price - 1) * 100)",
+        subtitle="Stocks upside comparring intrinsic value and current price ((iv / price - 1) * 100)",
     )
     fig.update_layout(title={"font": {"weight": 1000}})
 
     return fig
 
 
-def plot_price_iv_chat(valid_stocks: pd.DataFrame, index: str):
+def plot_price_iv_chat(valid_stocks: pd.DataFrame):
     valid_stocks["upside"] = valid_stocks["upside"] * 100
     valid_stocks["abs_upside"] = abs(valid_stocks["upside"])
 
@@ -43,7 +43,7 @@ def plot_price_iv_chat(valid_stocks: pd.DataFrame, index: str):
         },
         labels={"iv": "intrinsic value"},
         title="Price vs. Intrinsic Value",
-        subtitle=f"Relation between {index} stocks current price and intrinsic value",
+        subtitle="Relation between stocks current price and intrinsic value",
     )
 
     fig.add_scatter(
@@ -58,10 +58,9 @@ def plot_price_iv_chat(valid_stocks: pd.DataFrame, index: str):
     return fig
 
 
-def plot_upside_hist(valid_stocks: pd.DataFrame, index: str):
+def plot_upside_hist(valid_stocks: pd.DataFrame):
     valid_stocks["upside"] = valid_stocks["upside"] * 100
-
-    hist, bin_edges = np.histogram(valid_stocks["upside"], bins=20, density=False)
+    hist, bin_edges = np.histogram(valid_stocks.query("upside < 100000")["upside"], bins=20, density=False)
     bin_centers = 0.5 * (bin_edges[:-1] + bin_edges[1:])
     intervals = [
         f"{bin_edges[i]:.1f}% to {bin_edges[i + 1]:.1f}%"
@@ -82,8 +81,8 @@ def plot_upside_hist(valid_stocks: pd.DataFrame, index: str):
         y=hist.cumsum(),
         mode="lines+markers",
         name="Cumulative Sum",
-        customdata=hist.cumsum()
-        / valid_stocks["upside"].size,  # Pass our interval strings here
+        customdata=(hist.cumsum()
+        / valid_stocks["upside"].size).round(2),  # Pass our interval strings here
         hovertemplate="<b>Count:</b> %{y}<br><b>Norm. count:</b> %{customdata}<extra></extra>",
         secondary_y=True,
     )
@@ -100,7 +99,7 @@ def plot_upside_hist(valid_stocks: pd.DataFrame, index: str):
     return fig
 
 
-def plot_pe_upside_chat(valid_stocks: pd.DataFrame, index: str):
+def plot_pe_upside_chat(valid_stocks: pd.DataFrame):
     valid_stocks["upside"] = valid_stocks["upside"] * 100
     valid_stocks["abs_upside"] = abs(valid_stocks["upside"])
 
@@ -119,7 +118,7 @@ def plot_pe_upside_chat(valid_stocks: pd.DataFrame, index: str):
         },
         labels={"p_e": "price / earnings", "upside": "upside"},
         title="Price / Earnigns vs. Upside [%]",
-        subtitle=f"Relation between {index} stocks current p/e and upside (based on estimated intrinsic value and current price)",
+        subtitle="Relation between stocks current p/e and upside (based on estimated intrinsic value and current price)",
     )
 
     fig.update_layout(title={"font": {"weight": 1000}}, legend_orientation="h")
@@ -127,7 +126,7 @@ def plot_pe_upside_chat(valid_stocks: pd.DataFrame, index: str):
     return fig
 
 
-def plot_box_plot(valid_stocks: pd.DataFrame, index: str):
+def plot_box_plot(valid_stocks: pd.DataFrame):
     valid_stocks["upside"] = valid_stocks["upside"] * 100
 
     fig = make_subplots(1, 4)
@@ -135,6 +134,6 @@ def plot_box_plot(valid_stocks: pd.DataFrame, index: str):
     fig.add_box(y=valid_stocks["p_e"], row=1, col=2, name="price / earnings")
     fig.add_box(y=valid_stocks["p_bv"], row=1, col=3, name="price / book value")
     fig.add_box(y=valid_stocks["p_iv"], row=1, col=4, name="price / intrinsic value")
-    fig.update_layout(title={"font": {"weight": 1000}}, legend_orientation="h")
-    
+    fig.update_layout(title={"text":"Box Plots", "font": {"weight": 1000}}, legend_orientation="h")
+
     return fig
