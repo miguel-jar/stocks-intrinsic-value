@@ -10,15 +10,17 @@ def plot_upside_chat(valid_stocks: pd.DataFrame):
         x="ticker",
         y="upside",
         color="upside",
+        size="market_cap",
         hover_name="ticker",
         hover_data={
             "upside": True,
             "ticker": False,
             "price": True,
             "intrinsic_value": True,
+            "market_cap": False,
         },
         title="Upside [%]",
-        subtitle="Stocks upside comparring intrinsic value and current price ((intrinsic_value / price - 1) * 100)",
+        subtitle="Stocks upside comparring intrinsic value and current price. Bubble size represented by stock market cap.\n upside = ((intrinsic_value / price - 1) * 100) [%]",
     )
     fig.update_layout(title={"font": {"weight": 1000}})
 
@@ -115,9 +117,33 @@ def plot_pe_upside_chat(valid_stocks: pd.DataFrame):
             "abs_upside": False,
             "p_iv": True,
         },
-        labels={"p_e": "price / earnings", "upside": "upside"},
+        labels={"p_e": "price / earnings"},
         title="Price / Earnigns vs. Upside [%]",
         subtitle="Relation between stocks current p/e and upside (based on estimated intrinsic value and current price). Bubble size represented by upside.",
+    )
+
+    fig.update_layout(title={"font": {"weight": 1000}}, legend_orientation="h")
+
+    return fig
+
+
+def plot_pe_pbv_piv(valid_stocks: pd.DataFrame):
+    fig = px.scatter(
+        valid_stocks,
+        x="p_e",
+        y="p_bv",
+        color="upside",
+        size="p_iv",
+        hover_name="ticker",
+        # hover_data={
+        #     "upside": True,
+        #     "p_e": True,
+        #     "abs_upside": False,
+        #     "p_iv": True,
+        # },
+        labels={"p_e": "price / earnings", "p_bv": "price / book value"},
+        title="Price / Earnigns vs. Price / Book Value",
+        subtitle="Relation between stocks current p/e and p/bv. Bubble size represented by p/iv and color by upside.",
     )
 
     fig.update_layout(title={"font": {"weight": 1000}}, legend_orientation="h")
