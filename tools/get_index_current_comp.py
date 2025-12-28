@@ -66,12 +66,13 @@ def get_index_current_comp(index: Literal["IBOV", "SMLL", "IDIV", "IFIX"]) -> pd
 
     except Exception as e:
         print(e)
-        print("\nCouldn't get data from web. Checking for stored files ...\n")
+        print("\nCouldn't get data from web. Checking for stored files ...")
 
         try:
             df = pd.read_csv(_file_saving_path)
+            print("\nFile found.")
         except FileNotFoundError:
-            print("No stored file found. Exiting program ....")
+            print("\nNo stored file found. Exiting program ...\n")
             exit(1)
 
     return df

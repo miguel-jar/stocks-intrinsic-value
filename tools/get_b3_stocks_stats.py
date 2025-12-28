@@ -60,12 +60,13 @@ def get_b3_stocks_stats(save_csv: bool = False) -> pd.DataFrame:
 
     except Exception as e:
         print(e)
-        print("\nCouldn't get data from web. Checking for stored files ...\n")
+        print("\nCouldn't get data from web. Checking for stored files ...")
 
         try:
             df = pd.read_csv(_file_saving_path)
+            print("\nFile found.")
         except FileNotFoundError:
-            print("No stored file found. Exiting program ....")
+            print("\nNo stored file found. Exiting program ...\n")
             exit(1)
 
     return df

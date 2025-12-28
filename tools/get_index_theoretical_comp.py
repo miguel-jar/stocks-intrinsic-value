@@ -70,8 +70,9 @@ def get_index_theoretical_comp(index: Literal["IBOV", "SMLL", "IDIV", "IFIX"]) -
 
         try:
             df = pd.read_csv(_file_saving_path)
+            print("\nFile found.")
         except FileNotFoundError:
-            print("No stored file found. Exiting program ....")
+            print("\nNo stored file found. Exiting program ...\n")
             exit(1)
 
     return df
