@@ -79,12 +79,10 @@ streamlit run main.py
 
 ## 📈 Dashboard Usage
 
-Select Index: 
+1. **Select Index**: Use the top tabs to switch between IBOV (Ibovespa), SMLL (Small Caps), IDIV (Dividend Index), or All Stocks.
 
-1. Use the top tabs to switch between IBOV (Ibovespa), SMLL (Small Caps), IDIV (Dividend Index), or All Stocks.
+2. **Filter by Market Cap**: On the "All Stocks" tab, use the numeric input to filter out micro-cap stocks that might skew averages.
 
-2. Filter by Market Cap: On the "All Stocks" tab, use the numeric input to filter out micro-cap stocks that might skew averages.
+3. **Analyze Valid vs. Invalid**: Valid Stocks: Companies with $BVPS > 0$, $EPS > 0$, and $Price > 0$.
 
-3. Analyze Valid vs. Invalid:Valid Stocks: Companies with $BVPS > 0$, $EPS > 0$, and $Price > 0$.
-
-4. Invalid Stocks: Companies excluded from intrinsic value calculation due to negative earnings or equity9.Explore Metrics: Review the weighted averages to understand if an entire index is currently overvalued or undervalued relative to its Graham value10.
+4. **Invalid Stocks**: Companies excluded from intrinsic value calculation due to negative earnings or equity9.Explore Metrics: Review the weighted averages to understand if an entire index is currently overvalued or undervalued relative to its Graham value10.
