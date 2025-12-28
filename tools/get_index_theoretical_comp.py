@@ -7,7 +7,9 @@ import pandas as pd
 import requests
 
 
-def get_index_theoretical_comp(index: Literal["IBOV", "SMLL", "IDIV", "IFIX"]) -> pd.DataFrame:
+def get_index_theoretical_comp(
+    index: Literal["IBOV", "SMLL", "IDIV", "IFIX"],
+) -> pd.DataFrame:
     _file_saving_path = f"files/{index.lower()}_theoretical_composition.csv"
 
     payload = {"index": index, "language": "pt-br"}
